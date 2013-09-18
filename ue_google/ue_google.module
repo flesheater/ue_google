@@ -1,0 +1,155 @@
+<?php 
+/*
+ * @file
+ * Google map module
+ * The main module functions and hooks
+ * 
+ */
+
+/**
+ * Implements hook_init
+ */
+function ue_google_init() {
+  global $_map_data;
+  $_map_data = db_select('ue_google_maps', 'g')->fields('g')->execute()->fetchObject();
+  
+  if (isset($_map_data) && !empty($_map_data->google_key)) {  
+    drupal_add_js('http://maps.google.com/maps?file=api&v=2&key=' . $_map_data->google_key);
+  }
+}
+
+/**
+ * Implements hook_menu
+ */
+function ue_google_menu() {
+  $items = array();
+  $items['admin/config/content/google'] = array(
+    'title' => 'Google',
+    'description' => 'Configuration for the UE Google Module.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('ue_google_form'),
+    'file' => 'ue_google_form.inc',
+    'access arguments' => array('administer site configuration'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+  
+  $items['google'] = array(
+    'title' => 'Google map',
+    'page callback' => 'ue_google_map_page',
+    'access arguments' => array('access content'),
+  );
+
+return $items;
+}
+
+/**
+ * Implements hook_block_info
+ */
+function ue_google_block_info() {
+  $blocks = array();
+  $blocks['gblock'] = array(
+    'info' => t('The google map'),
+    'cache' => DRUPAL_NO_CACHE,
+    'visibility' => 0,
+    'pages' => 'google',
+  );
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view
+ */
+function ue_google_block_view($block_name = '') {
+
+  if ($block_name == 'gblock') {
+    global $_map_data;
+    $block = '';
+    
+    
+    if (!empty($_map_data->marker_latitude) || 
+        !empty($_map_data->marker_longitude) || !empty($_map_data->marker_name) ||
+        !empty($_map_data->center_latitude) || !empty($_map_data->center_longitude) ||
+        !empty($_map_data->start_zoom)) {  
+      
+      $content = "
+      <script>
+      var markers = [{
+        'latitude': ". $_map_data->marker_latitude . ",
+        'longitude': ". $_map_data->marker_longitude . ",
+        'name': '" . $_map_data->marker_name . "'}];
+      var centerLatitude = " . $_map_data->center_latitude . ";
+      var centerLongitude = " . $_map_data->center_longitude . ";
+      var startZoom = " . $_map_data->start_zoom . ";
+      var map;
+      </script>
+      <script src='" . drupal_get_path('module', 'ue_google') . "/js/map_functions.js' type='text/javascript'></script>
+      <div id='map' style='width: 165px; height: 300px'></div>
+      
+          ";
+    
+        $block = array(
+      'subject' => t('Google map'),
+      'content' => $content,
+    );
+    }
+    else {
+      drupal_set_message(t('You are trying to show the google map block but you 
+      first have to configure it <a href="@link">here</a>.', array('@link' => url('admin/config/content/google'))), 'warning');
+    }
+
+    return $block;
+  }
+}
+
+/**
+* Implement hook_menu().
+*/
+function ue_google_map_page() {
+  global $_map_data;
+    $content = '';
+    
+    if (!empty($_map_data->marker_latitude) || 
+      !empty($_map_data->marker_longitude) || !empty($_map_data->marker_name) ||
+      !empty($_map_data->center_latitude) || !empty($_map_data->center_longitude) ||
+      !empty($_map_data->start_zoom)) {
+          
+      $content = $_map_data->marker_name . "
+        <script>
+        var markers = [{
+        	'latitude': " . $_map_data->marker_latitude . ",
+        	'longitude': " . $_map_data->marker_longitude . ",
+        	'name': '" . $_map_data->marker_name . "'}];
+        var centerLatitude = " . $_map_data->center_latitude . ";
+        var centerLongitude = " . $_map_data->center_longitude . ";
+        var startZoom = " . $_map_data->start_zoom . ";
+        var map;
+        </script>
+        <script src='" . drupal_get_path('module', 'ue_google') . "/js/map_functions.js' type='text/javascript'></script>
+        <div id='map' style='width: 100%; height: 500px'></div>";
+    }
+    else {
+      drupal_set_message(t('You are trying to view the google map page but you 
+      first have to configure it <a href="@link">here</a>.', array('@link' => url('admin/config/content/google'))), 'warning');
+    }
+
+  return $content;
+}
+
+/**
+ * Helper function for getting the coordinates on a given address
+ */
+function _ue_google_get_coordinates_based_on_address($address) {
+  $geocoder_settings = variable_get("geocoder_settings", array());
+  $api_url = "http://open.mapquestapi.com/nominatim/v1/search";
+  $params = array(
+    'q' => str_replace(' ', '+', $address),
+    'format' => 'json',
+    'addressdetails' => 0,
+    'limit' => 1,
+    'osm_type' => 'N',
+  );
+  $request = drupal_http_request($api_url . '?' . drupal_http_build_query($params));
+  $coordinates = json_decode($request->data);  
+
+  return $coordinates;
+}

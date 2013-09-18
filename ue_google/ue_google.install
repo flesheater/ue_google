@@ -1,0 +1,64 @@
+<?php 
+/**
+ * @file
+ * Google map module
+ * Install file of the ue_google module
+ * 
+ */
+
+
+/*
+ *Implement hook_schema().
+ */
+function ue_google_schema() {
+  $schema = array();
+  $schema['ue_google_maps'] = array(
+    'fields' => array(
+      'map_id' => array(
+        'type' => 'serial',
+        'not null' => TRUE,
+      ),
+      'google_key' => array(
+        'type' => 'varchar',
+        'length' => 500,
+        'not null' => TRUE,
+      ),
+      'marker_latitude' => array(
+        'type' => 'float',
+        'not null' => TRUE,
+        'default' => 0.0,
+      ),
+      'marker_longitude' => array(
+        'type' => 'float',
+        'not null' => TRUE,
+        'default' => 0.0,
+      ),
+      'marker_name' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'center_latitude' => array(
+        'type' => 'float',
+        'not null' => TRUE,
+        'default' => 0.0,
+      ),
+      'center_longitude' => array(
+        'type' => 'float',
+        'not null' => TRUE,
+        'default' => 0.0,
+      ),
+      'start_zoom' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      
+    ),
+    'primary key' => array('map_id'),
+  );
+
+  return $schema;
+}

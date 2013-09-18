@@ -1,0 +1,4 @@
+name = "UE Google Module"
+description = "Google module, made by Nikolay Borisov. For more information contact me at <a href='http://webham.eu' target='_blank'>webham.eu</a>"
+core = "7.x"
+package = "Iconomic Universety Modules"
