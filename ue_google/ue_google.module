@@ -39,7 +39,7 @@ function ue_google_menu() {
     'access arguments' => array('access content'),
   );
 
-return $items;
+  return $items;
 }
 
 /**
@@ -97,7 +97,7 @@ function ue_google_block_view($block_name = '') {
       first have to configure it <a href="@link">here</a>.', array('@link' => url('admin/config/content/google'))), 'warning');
     }
 
-    return $block;
+  return $block;
   }
 }
 
@@ -131,7 +131,7 @@ function ue_google_map_page() {
       drupal_set_message(t('You are trying to view the google map page but you 
       first have to configure it <a href="@link">here</a>.', array('@link' => url('admin/config/content/google'))), 'warning');
     }
-
+    
   return $content;
 }
 
